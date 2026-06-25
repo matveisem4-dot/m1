@@ -40,10 +40,13 @@ jobs:
       - name: 6. Даем права на запуск сборщика gradlew
         run: chmod +x android/gradlew
 
-      - name: 6.5 Вырезаем виндовые пути Java из настроек
+      - name: 6.5 Исправляем конфигурацию gradle.properties (Java и Hermes)
         run: |
           if [ -f android/gradle.properties ]; then
+            # Удаляем виндовый путь к Java, чтобы Linux-сервер не ругался
             sed -i '/org.gradle.java.home/d' android/gradle.properties
+            # Принудительно добавляем hermesEnabled, который так сильно ищет build.gradle
+            echo "hermesEnabled=true" >> android/gradle.properties
           fi
 
       - name: 7. Запускаем компиляцию приложения (Генерация APK)
