@@ -40,16 +40,18 @@ jobs:
       - name: 6. Даем права на запуск сборщика gradlew
         run: chmod +x android/gradlew
 
-      - name: 6.5 Исправляем конфигурацию gradle.properties (Java, Hermes и Память)
+      - name: 6.5 Исправляем конфигурацию gradle.properties
         run: |
           if [ -f android/gradle.properties ]; then
-            # Удаляем виндовый путь к Java, чтобы Linux-сервер не ругался
             sed -i '/org.gradle.java.home/d' android/gradle.properties
-            # Принудительно добавляем hermesEnabled, который так сильно ищет build.gradle
             echo "hermesEnabled=true" >> android/gradle.properties
-            # Выделяем Gradle больше оперативной памяти, чтобы не было ошибки Java heap space
             echo "org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g" >> android/gradle.properties
           fi
+
+      - name: 6.7 Собираем JavaScript код в офлайн-пакет (Bundle)
+        run: |
+          mkdir -p android/app/src/main/assets
+          npx react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res
 
       - name: 7. Запускаем компиляцию приложения (Генерация APK)
         run: |
