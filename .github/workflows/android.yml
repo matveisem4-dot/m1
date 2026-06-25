@@ -2,8 +2,8 @@ name: Android Build Cloud
 
 on:
   push:
-    branches: [ main, master, dev ] # Робот сработает при пуше в любую из этих веток
-  workflow_dispatch: # Позволяет запустить сборку вручную кнопкой на сайте
+    branches: [ main, master, dev ]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -22,13 +22,12 @@ jobs:
       - name: 3. Настраиваем Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: '22'
 
       - name: 4. Устанавливаем NPM зависимости проекта
         run: npm install --legacy-peer-deps
 
-      - name: 5. Настраиваем кэширование Gradle (чтобы следующие сборки были быстрее)
+      - name: 5. Настраиваем кэширование Gradle
         uses: actions/cache@v4
         with:
           path: |
@@ -41,6 +40,12 @@ jobs:
       - name: 6. Даем права на запуск сборщика gradlew
         run: chmod +x android/gradlew
 
+      - name: 6.5 Вырезаем виндовые пути Java из настроек
+        run: |
+          if [ -f android/gradle.properties ]; then
+            sed -i '/org.gradle.java.home/d' android/gradle.properties
+          fi
+
       - name: 7. Запускаем компиляцию приложения (Генерация APK)
         run: |
           cd android
@@ -51,4 +56,4 @@ jobs:
         with:
           name: CyberDarkApp-Debug-APK
           path: android/app/build/outputs/apk/debug/app-debug.apk
-          retention-days: 7 # Файл будет храниться на GitHub 7 дней
+          retention-days: 7
