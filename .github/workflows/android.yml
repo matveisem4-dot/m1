@@ -1,0 +1,54 @@
+name: Android Build Cloud
+
+on:
+  push:
+    branches: [ main, master, dev ] # Робот сработает при пуше в любую из этих веток
+  workflow_dispatch: # Позволяет запустить сборку вручную кнопкой на сайте
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 1. Скачиваем код из репозитория
+        uses: actions/checkout@v4
+
+      - name: 2. Настраиваем Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: 3. Настраиваем Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 4. Устанавливаем NPM зависимости проекта
+        run: npm install --legacy-peer-deps
+
+      - name: 5. Настраиваем кэширование Gradle (чтобы следующие сборки были быстрее)
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: 6. Даем права на запуск сборщика gradlew
+        run: chmod +x android/gradlew
+
+      - name: 7. Запускаем компиляцию приложения (Генерация APK)
+        run: |
+          cd android
+          ./gradlew assembleDebug --no-daemon
+
+      - name: 8. Сохраняем готовый APK файл для скачивания
+        uses: actions/upload-artifact@v4
+        with:
+          name: CyberDarkApp-Debug-APK
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 7 # Файл будет храниться на GitHub 7 дней
