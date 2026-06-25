@@ -72,7 +72,7 @@ const base64ToUtf8 = (input: string): string => {
 export default function App() {
   const [screen, setScreen] = useState<string>('AUTH');
   const [myId, setMyId] = useState<string>('');
-  const [myEmail, setMyEmail] = useState<string>(''); // Реальное поле почты
+  const [myEmail, setMyEmail] = useState<string>(''); 
   const [twoFACode, setTwoFACode] = useState<string>('');
   const [input2FA, setInput2FA] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -115,7 +115,6 @@ export default function App() {
       return;
     }
 
-    // Регулярка для проверки валидности почты
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(myEmail.trim())) {
       Alert.alert('Ошибка', 'Введите корректный адрес электронной почты!');
@@ -125,18 +124,16 @@ export default function App() {
     setIsLoading(true);
     const generatedCode = Math.floor(100000 + Math.random() * 900000).toString();
 
-    // Данные для интеграции с EmailJS (замените на свои ключи при желании)
-    const serviceId = 'service_default'; 
+    // Твои боевые авторизационные данные шлюза EmailJS
+    const serviceId = 'service_ec1e4js'; // Твой личный Service ID
     const templateId = 'template_cyberdark'; 
-    const publicKey = 'YOUR_EMAILJS_PUBLIC_KEY'; // Сюда вставляется публичный токен
+    const publicKey = 'AHWW9lnajKhGLAgJw'; // Твой личный Public Key
 
     try {
-      // Сохраняем данные в память
       await AsyncStorage.setItem('@my_id', myId);
       await AsyncStorage.setItem('@my_email', myEmail);
       setTwoFACode(generatedCode);
 
-      // Реальный HTTP-запрос к почтовому шлюзу
       const response = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -155,7 +152,6 @@ export default function App() {
       if (response.status === 200 || (await response.text()) === 'OK') {
         Alert.alert('Успешно', `Код безопасности отправлен на почту ${myEmail}! Проверьте спам, если не пришло.`);
       } else {
-        // Если API ключи не настроены, мы все равно пустим для теста, выведя код в консоль/алерт
         console.log('Код авторизации:', generatedCode);
         Alert.alert('Режим отладки', `Письмо отправится, когда привяжешь Public Key в коде. Ваш код: ${generatedCode}`);
       }
@@ -186,7 +182,6 @@ export default function App() {
   const sendMessage = () => {
     if (!inputText.trim()) return;
 
-    // Шифруем (теперь без падений на русском языке)
     const encryptedText = `[ENCRYPTED_AES256_MTP]:${utf8ToBase64(inputText)}`;
     
     const newMessage: IMessage = {
@@ -201,7 +196,6 @@ export default function App() {
     saveMessagesToStorage(updated);
     setInputText('');
 
-    // Эмуляция ответа от второго устройства
     setTimeout(() => {
       const autoReply = `[ENCRYPTED_AES256_MTP]:${utf8ToBase64('Сообщение успешно расшифровано. Канал связи полностью безопасен.')}`;
       const replyMessage: IMessage = {
@@ -216,7 +210,6 @@ export default function App() {
     }, 1200);
   };
 
-  // Экраны приложения
   if (screen === 'AUTH') {
     return (
       <SafeAreaView style={styles.container}>
